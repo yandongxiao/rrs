@@ -40,7 +40,7 @@ func main() {
 	fmt.Printf("value space=[%d, %d]\n", 1, 2000*2000*2000)
 
 	round := 50
-	for i := 1; i < 20; i++ {
+	for i := 1; i < 30; i++ {
 		fmt.Println("round=", round)
 		fmt.Println(rrs.Optimize(rrs.Request{
 			Round:  round,
