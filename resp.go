@@ -31,14 +31,3 @@ func (resps responses) getBest() Response {
 	}
 	return best
 }
-
-// getPromisingResult return the promissing result. If metricFunc
-// returns a result which is less than it, then do exploitation.
-func (resps responses) getPromisingResult() int {
-	sum := 0
-	i := 0
-	for ; i < len(resps)/GS.n; i++ {
-		sum += resps[i*GS.n : (i+1)*GS.n].getBest().result
-	}
-	return sum / i
-}

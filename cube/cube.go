@@ -1,16 +1,21 @@
-package rrs_test
+package main
 
 import (
 	"fmt"
 	"math"
 	"math/rand"
-	"testing"
 	"time"
+
+	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/yandongxiao/rrs"
 )
 
-func TestCube(t *testing.T) {
+func main() {
+	go func() {
+		http.ListenAndServe("localhost:6060", nil)
+	}()
 	fmt.Println(rrs.GS, rrs.LS)
 	rand.Seed(int64(time.Now().Nanosecond()))
 	params := []rrs.Parameter{
@@ -35,7 +40,7 @@ func TestCube(t *testing.T) {
 	fmt.Printf("value space=[%d, %d]\n", 1, 2000*2000*2000)
 
 	round := 50
-	for i := 1; i < 12; i++ {
+	for i := 1; i < 20; i++ {
 		fmt.Println("round=", round)
 		fmt.Println(rrs.Optimize(rrs.Request{
 			Round:  round,
@@ -53,4 +58,6 @@ func TestCube(t *testing.T) {
 		}))
 		round *= 2
 	}
+
+	fmt.Println("done")
 }

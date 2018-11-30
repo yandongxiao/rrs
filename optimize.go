@@ -30,7 +30,7 @@ func Optimize(req Request) (Response, error) {
 		return Response{}, errors.New(msg)
 	}
 	counter := 0
-	exploreReponses := make(responses, 0, req.Round)
+	exploreReponses := make(responses, 0, GS.n)
 
 	// the algorithm uses the value of f(xn(1)) in the first n samples as the threshold value yr.
 	// take n random samples xi, i = 1 . . . n from parameter space D
@@ -44,9 +44,16 @@ func Optimize(req Request) (Response, error) {
 		counter++
 	}
 	cand := exploreReponses.getBest()
+	exploreReponses = exploreReponses[:0]
 
 	// the adjustment for the balance between exploration and exploitation.
-	promisingResult := exploreReponses.getPromisingResult()
+	promising := struct {
+		result  int
+		counter int
+	}{
+		result:  cand.result,
+		counter: 1,
+	}
 	exploitFlag := 1
 	best := cand
 
@@ -98,7 +105,7 @@ func Optimize(req Request) (Response, error) {
 		v := req.Metric(s)
 		counter++
 		exploreReponses = append(exploreReponses, Response{s, v})
-		if v < promisingResult {
+		if v < promising.result {
 			// Find a promising point, set the flag to exploit
 			exploitFlag = 1
 			cand = Response{s, v}
@@ -107,7 +114,10 @@ func Optimize(req Request) (Response, error) {
 		// In later exploration, a new xn(1) is obtained every n samples.
 		// and yr is updated with the average of these xn(1)
 		if len(exploreReponses)%GS.n == 0 {
-			promisingResult = exploreReponses.getPromisingResult()
+			promising.result = (exploreReponses.getBest().result +
+				promising.result*promising.counter) / (promising.counter + 1)
+			promising.counter++
+			exploreReponses = exploreReponses[:0]
 		}
 	}
 	return best, nil
