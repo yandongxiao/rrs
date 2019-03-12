@@ -48,7 +48,7 @@ func Optimize(req Request) (Response, error) {
 
 	// the adjustment for the balance between exploration and exploitation.
 	promising := struct {
-		result  int
+		result  []int
 		counter int
 	}{
 		result:  cand.result,
@@ -72,7 +72,7 @@ func Optimize(req Request) (Response, error) {
 					result: req.Metric(s),
 				}
 				counter++
-				if resp.result < cand.result {
+				if less(resp.result, cand.result) {
 					// Find a better point, re-align the center
 					// of sample space to the new point
 					cand = resp
@@ -93,7 +93,7 @@ func Optimize(req Request) (Response, error) {
 				}
 			}
 			exploitFlag = 0
-			if cand.result < best.result {
+			if less(cand.result, best.result) {
 				best = cand
 			}
 		}
@@ -105,7 +105,7 @@ func Optimize(req Request) (Response, error) {
 		v := req.Metric(s)
 		counter++
 		exploreReponses = append(exploreReponses, Response{s, v})
-		if v < promising.result {
+		if less(v, promising.result) {
 			// Find a promising point, set the flag to exploit
 			exploitFlag = 1
 			cand = Response{s, v}
@@ -114,8 +114,10 @@ func Optimize(req Request) (Response, error) {
 		// In later exploration, a new xn(1) is obtained every n samples.
 		// and yr is updated with the average of these xn(1)
 		if len(exploreReponses)%GS.n == 0 {
-			promising.result = (exploreReponses.getBest().result +
-				promising.result*promising.counter) / (promising.counter + 1)
+			for i := 0; i < len(promising.result); i++ {
+				promising.result[i] = (exploreReponses.getBest().result[i] + promising.result[i]*promising.counter) /
+					(promising.counter + 1)
+			}
 			promising.counter++
 			exploreReponses = exploreReponses[:0]
 		}

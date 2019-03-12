@@ -45,7 +45,7 @@ func main() {
 		fmt.Println(rrs.Optimize(rrs.Request{
 			Round:  round,
 			Params: params,
-			Metric: func(p rrs.Sample) int {
+			Metric: func(p rrs.Sample) []int {
 				getVolume := func(p rrs.Sample) float64 {
 					res := 1.0
 					for i := range p {
@@ -53,7 +53,7 @@ func main() {
 					}
 					return res
 				}
-				return int(math.Abs(50000 - getVolume(p)))
+				return []int{int(math.Abs(50000 - getVolume(p)))}
 			},
 		}))
 		round *= 2
