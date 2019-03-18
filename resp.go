@@ -5,7 +5,9 @@ import "fmt"
 // Response represents the optimized result
 type Response struct {
 	Sample
-	result []int
+	Result []int
+	// the extra values of rrs process
+	Val interface{}
 }
 
 type responses []Response
@@ -29,7 +31,7 @@ func less(this []int, that []int) bool {
 
 func (resp Response) String() string {
 	s := resp.Sample.String()
-	return fmt.Sprintf("%v %v", s, resp.result)
+	return fmt.Sprintf("%v %v", s, resp.Result)
 }
 
 // getBest return the the smallest result
@@ -40,7 +42,7 @@ func (resps responses) getBest() Response {
 			best = resps[i]
 			continue
 		}
-		if less(resps[i].result, best.result) {
+		if less(resps[i].Result, best.Result) {
 			best = resps[i]
 		}
 	}

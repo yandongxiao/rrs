@@ -15,4 +15,4 @@ type Parameter struct {
 }
 
 // MetricFunc the value of ps, the smaller the better
-type MetricFunc func(p Sample) []int
+type MetricFunc func(p Sample) ([]int, interface{})

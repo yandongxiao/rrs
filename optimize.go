@@ -37,9 +37,11 @@ func Optimize(req Request) (Response, error) {
 	// x0 ← arg min1≤i≤n(f(xi)), yr ← f(x0), add f(x0) to the threshold set F
 	// NOTE: x0, yr, F can be calculated from exploreReponses
 	for _, s := range take(GS.n, req.Params) {
+		metric, val := req.Metric(s)
 		exploreReponses = append(exploreReponses, Response{
 			Sample: s,
-			result: req.Metric(s),
+			Result: metric,
+			Val:    val,
 		})
 		counter++
 	}
@@ -51,7 +53,7 @@ func Optimize(req Request) (Response, error) {
 		result  []int
 		counter int
 	}{
-		result:  cand.result,
+		result:  cand.Result,
 		counter: 1,
 	}
 	exploitFlag := 1
@@ -67,12 +69,14 @@ func Optimize(req Request) (Response, error) {
 			for p > LS.st && counter < req.Round {
 				// take a random sample x′ from bounded parameter space
 				s := cand.take()
+				metric, val := req.Metric(s)
 				resp := Response{
 					Sample: s,
-					result: req.Metric(s),
+					Result: metric,
+					Val:    val,
 				}
 				counter++
-				if less(resp.result, cand.result) {
+				if less(resp.Result, cand.Result) {
 					// Find a better point, re-align the center
 					// of sample space to the new point
 					cand = resp
@@ -93,7 +97,7 @@ func Optimize(req Request) (Response, error) {
 				}
 			}
 			exploitFlag = 0
-			if less(cand.result, best.result) {
+			if less(cand.Result, best.Result) {
 				best = cand
 			}
 		}
@@ -102,20 +106,20 @@ func Optimize(req Request) (Response, error) {
 		// any future sample with a smaller function value than yr
 		// is considered to belong to AD(r)
 		s := take(1, req.Params)[0]
-		v := req.Metric(s)
+		v, val := req.Metric(s)
 		counter++
-		exploreReponses = append(exploreReponses, Response{s, v})
+		exploreReponses = append(exploreReponses, Response{s, v, val})
 		if less(v, promising.result) {
 			// Find a promising point, set the flag to exploit
 			exploitFlag = 1
-			cand = Response{s, v}
+			cand = Response{s, v, val}
 		}
 
 		// In later exploration, a new xn(1) is obtained every n samples.
 		// and yr is updated with the average of these xn(1)
 		if len(exploreReponses)%GS.n == 0 {
 			for i := 0; i < len(promising.result); i++ {
-				promising.result[i] = (exploreReponses.getBest().result[i] + promising.result[i]*promising.counter) /
+				promising.result[i] = (exploreReponses.getBest().Result[i] + promising.result[i]*promising.counter) /
 					(promising.counter + 1)
 			}
 			promising.counter++
